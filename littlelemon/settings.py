@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "restaurant",
     "rest_framework",
+    "rest_framework.authtoken",  # djangorestframework
+    "djoser",  # djoser - important to add this app after the rest_framework app declaration above, and must include rest_framework.authtoken for migrations to work
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+}
+
+DJOSER = {
+    "USER_ID_FIELD": "username",  # specifies which field in the user model will act as the primary key. In this case, it is set to the "username" field in the user model (rather than default the primary key to the "id" field)
+}
