@@ -31,6 +31,14 @@ def booking(request):
     return render(request, "booking.html")
 
 
+def login(request):
+    return render(request, "login.html")
+
+
+def signup(request):
+    return render(request, "register.html")
+
+
 class MenuItemsView(generics.ListCreateAPIView):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer

@@ -1,0 +1,67 @@
+{% extends 'index.html' %} {% load static %} {% block content %}
+<h1>Signup!</h1>
+<form id="register-form">
+  {% csrf_token %}
+  <label for="username">Username</label>
+  <input type="text" name="username" id="username" />
+  <label for="email">Email</label>
+  <input type="email" name="email" id="email" />
+  <label for="password">Password</label>
+  <input type="password" name="password" id="password" />
+  <button type="submit">Register</button>
+</form>
+<p id="error" class="error-message"></p>
+<p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+<script>
+  const form = document.getElementById("register-form");
+  form.addEventListener("submit", register);
+
+  function register(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+
+    const csrf_token = formData.get("csrfmiddlewaretoken");
+    const username = formData.get("username");
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    const data = {
+      username,
+      email,
+      password,
+    };
+
+    const url = "/auth/users/";
+
+    let requestResponse;
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        requestResponse = response;
+        return response.json();
+      })
+      .then((result) => {
+        debugger;
+        if (requestResponse.ok) {
+          window.location.href = "{% url 'login' %}";
+        }
+        console.log(result);
+        throw new Error(JSON.stringify(result));
+      })
+      .catch((error) => {
+        debugger;
+        document.getElementById(
+          "error"
+        ).innerHTML = `There was a problem registering an account. Please try again.<br/><br/>${error}`;
+      });
+  }
+</script>
+{% endblock %}

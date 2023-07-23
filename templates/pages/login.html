@@ -1,0 +1,69 @@
+{% extends 'index.html' %} {% load static %} {% block content %}
+<h1>Login</h1>
+<form id="login-form">
+  {% csrf_token %}
+  <label for="username">Username</label>
+  <input type="text" name="username" id="username" />
+  <label for="password">Password</label>
+  <input type="password" name="password" id="password" />
+  <button type="submit">Login</button>
+</form>
+<p id="error" class="error-message"></p>
+<p>
+  Do not have an account? <a href="{% url 'register' %}">Register</a> an account
+</p>
+<script>
+  const form = document.getElementById("login-form");
+  form.addEventListener("submit", login);
+
+  function login(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+
+    const csrf_token = formData.get("csrfmiddlewaretoken");
+    const username = formData.get("username");
+    const password = formData.get("password");
+
+    const data = {
+      username,
+      password,
+    };
+
+    const url = "/auth/token/login/";
+
+    let requestResponse;
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        requestResponse = response;
+        return response.json();
+      })
+      .then((result) => {
+        if (requestResponse.ok && result.auth_token) {
+          const user = {
+            username,
+            token: result.auth_token,
+          };
+
+          localStorage.setItem("user", JSON.stringify(user));
+          window.location.href = "{% url 'home' %}";
+        } else {
+          throw new Error(JSON.stringify(result));
+        }
+      })
+      .catch((error) => {
+        document.getElementById(
+          "error"
+        ).innerHTML = `There was a problem logging in. Please try again.<br/><br/>${error}`;
+      });
+  }
+</script>
+{% endblock %}

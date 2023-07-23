@@ -4,15 +4,27 @@
     flex-direction: column;
   }
 </style>
-<section>
+<section id="booking-page">
   <article>
     <h1>Table Booking</h1>
     <p>View and manage your table bookings!</p>
     <!-- TODO: If not logged in (authenticated), display a link to the login form -->
+    <p id="auth-status"></p>
 
     <!-- TODO: List bookingss with side link to update and delete -->
 
     <!-- TODO: List table booking form for new bookings -->
   </article>
 </section>
+
+<script>
+  const user_details = JSON.parse(localStorage.getItem("user"));
+
+  if (!user_details) {
+    document.getElementById(
+      "auth-status"
+    ).innerHTML = `<a href="{% url 'login' %}">Login</a> to view and manage your table
+      bookings!`;
+  }
+</script>
 {% endblock %}

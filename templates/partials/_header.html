@@ -2,6 +2,10 @@
 
 <header>
   <img src="{% static 'img/logo.png' %}" />
+  <div id="user-action-bar">
+    <div id="user-link"></div>
+    <span id="user-link-error"></span>
+  </div>
 </header>
 <nav>
   <ul>
@@ -11,3 +15,42 @@
     <li><a href="{% url 'table-booking' %}">Book</a></li>
   </ul>
 </nav>
+<script>
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user) {
+    document.getElementById(
+      "user-link"
+    ).innerHTML = `${user.username} - <a href="#" onclick="logout()">Logout</a>`;
+  } else {
+    document.getElementById(
+      "user-link"
+    ).innerHTML = `<a href="{% url 'login' %}">Login</a>`;
+  }
+
+  function logout() {
+    const url = "/auth/token/logout/";
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${user.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          localStorage.removeItem("user");
+          window.location.href = "{% url 'home' %}";
+        }
+        document.getElementById(
+          "error"
+        ).innerHTML = `${response.status}:${response.statusText} - There was a problem logging out. Please try again.`;
+      })
+      .catch((error) => {
+        document.getElementById(
+          "error"
+        ).innerHTML = `${error} - There was a problem logging out. Please try again.`;
+      });
+  }
+</script>
