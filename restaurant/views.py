@@ -7,8 +7,28 @@ from .serializers import MenuSerializer, BookingSerializer
 
 
 # Create your views here.
-def index(request):
-    return render(request, "index.html", {})
+def home(request):
+    return render(request, "home.html", {})
+
+
+def about(request):
+    return render(request, "about.html")
+
+
+def menu_list(request):
+    menu = Menu.objects.all()
+    context = {"menu": menu}
+    return render(request, "menu_list.html", context)
+
+
+def menu_item(request, pk):
+    menu_item = Menu.objects.get(pk=pk)
+    context = {"menu_item": menu_item}
+    return render(request, "menu_item.html", context)
+
+
+def booking(request):
+    return render(request, "booking.html")
 
 
 class MenuItemsView(generics.ListCreateAPIView):

@@ -1,0 +1,22 @@
+{% extends 'index.html' %} {% load static %} {% block content %}
+<section>
+  <article>
+    <h1>Menu item</h1>
+    <span>
+      <a href="{% url 'home' %}">Home</a> /
+      <a href="{% url 'menu-list' %}">Menu</a> / {{menu_item.title}}
+    </span>
+    <!--Begin row-->
+    <div class="row">
+      <!--Begin col-->
+      <div class="column">
+        <h2>{{ menu_item.title }}</h2>
+        <p>{{ menu_item.menu_item_description }}</p>
+        <p>Price: £{{ menu_item.price }}</p>
+      </div>
+      <!--End col-->
+    </div>
+    <!--End row-->
+  </article>
+</section>
+{% endblock %}
