@@ -103,7 +103,7 @@ python3 manage.py createsuperuser
 
 10. Create a few menu items from within the admin interface dashboard at [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) by selecting the `+ Add` option to the right of the label `Menus` from within the left panel of the dashboard. Or, you could alternatively use your favourite REST client (e.g. Insomnia, Postman, etc), as long as you have generated and supply a valid token for the admin account in the request header (e.g. ` Authorization: "TOKEN 1234abge..."`), in which the token can also be obtained from the admin dashboard, or REST client ( `/auth/token/login/`).
 
-You may enter the following example menu items for inspiration:
+You may populate the menu items model / table with the following examples, for inspiration:
 
 ```
 name: "Edamame Beans"
@@ -167,6 +167,14 @@ To run the unit tests, run the following command in the terminal:
 
 ```shell
 python3 manage.py test
+```
+
+## Troubleshooting
+
+- if you encounter an error which states that the Django library is missing (or something similar) after running a CLI / shell command (e.g. `python3 manage.py ...`), then it is most likely that your virtual environment is not activated. To activate the virtual environment, run the following command from with the main root project directory in the terminal to activate the virtual environment, and then try running the previous command again:
+
+```shell
+pipenv shell
 ```
 
 ## Technologies Used
