@@ -1,30 +1,456 @@
 {% extends 'index.html' %} {% load static %} {% block content %}
 <style>
+  /* page specific styles */
+
   section {
     flex-direction: column;
   }
+
+  .booking {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .booking-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .update-booking-form-ontainer {
+    display: none;
+    margin-left: 2rem;
+    padding-left: 2rem;
+    border-left: 1px solid #ccc;
+  }
 </style>
+
+<!-- The HTML markup -->
 <section id="booking-page">
   <article>
     <h1>Table Booking</h1>
-    <p>View and manage your table bookings!</p>
-    <!-- TODO: If not logged in (authenticated), display a link to the login form -->
+    <!-- If not logged in (authenticated), display a link to the login form -->
     <p id="auth-status"></p>
 
-    <!-- TODO: List bookingss with side link to update and delete -->
+    <section class="row">
+      <div class="col">
+        <!-- List bookingss with side link to update and delete -->
+        <div id="saved-bookings"></div>
+        <div id="action-confirmation-message" class="success-message"></div>
+      </div>
+      <div
+        id="update-booking-container"
+        class="col update-booking-form-ontainer"
+      >
+        <!-- Update booking form -->
+        <h2 id="update-booking-title"></h2>
+        <form id="update-booking-form">
+          {% csrf_token %}
+          <input type="hidden" name="edit_booking_id" id="edit_booking_id" />
+          <input type="hidden" name="edit_user_id" id="edit_user_id" />
+          <input
+            type="hidden"
+            name="edit_original_reserverd_slot"
+            id="edit_original_reserverd_slot"
+          />
+          <label for="edit_reservation_date">Booking Date</label>
+          <input
+            type="date"
+            name="edit_reservation_date"
+            id="edit_reservation_date"
+          />
+          <label for="edit_reservation_slot">Booking Time</label>
+          <select id="edit_reservation_slot" name="edit_reservation_slot">
+            <option value="0" disabled>Select time</option>
+          </select>
+          <label for="edit_no-of-guests">Number of Guests</label>
+          <input
+            type="number"
+            name="edit_no_of_guests"
+            id="edit_no-of-guests"
+          />
+          <button type="button" onclick="handleCancelBookingUpdateClick()">
+            Cancel
+          </button>
+          <button type="submit">Update</button>
+        </form>
+        <p id="update-booking-error" class="error-message"></p>
+      </div>
+    </section>
 
-    <!-- TODO: List table booking form for new bookings -->
+    <!-- Booking form to create new bookings -->
+    <hr />
+    <h2>Book a Table</h2>
+    <form id="table-booking-form">
+      {% csrf_token %}
+      <label for="reservation_date">Booking Date</label>
+      <input type="date" name="reservation_date" id="reservation_date" />
+      <label for="reservation_slot">Booking Time</label>
+      <select id="reservation_slot" name="reservation_slot">
+        <option value="0" disabled>Select time</option>
+      </select>
+      <label for="no-of-guests">Number of Guests</label>
+      <input type="number" name="no_of_guests" id="no-of-guests" />
+      <button type="submit">Book</button>
+    </form>
+    <p id="table-booking-error" class="error-message"></p>
   </article>
 </section>
 
+<!-- The JavaScript -->
 <script>
+  const url = "/restaurant/booking/table/";
   const user_details = JSON.parse(localStorage.getItem("user"));
+  const updateBookingContainer = document.getElementById(
+    "update-booking-container"
+  );
 
-  if (!user_details) {
+  let bookings;
+  let reserved_slots = [];
+
+  /* initialisation calls */
+  verifyUsersession();
+  getBookings();
+  setDefaultBookingDate();
+  addEventListeners();
+
+  /* if user is not currently logged in, display a link to the login form */
+  function verifyUsersession() {
+    if (!user_details) {
+      document.getElementById(
+        "auth-status"
+      ).innerHTML = `<a href="{% url 'login' %}">Login</a> to view and manage your table
+        bookings!`;
+    }
+  }
+
+  /* fetch list of bookings for the logged in user (identified by token) */
+  async function getBookings() {
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${user_details.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`${response.status}:${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      const savedBookingsContainer = document.getElementById("saved-bookings");
+
+      // TODO: Display the list of bookings
+      if (data.length === 0) {
+        savedBookingsContainer.innerHTML = `You have no bookings. Make a booking!`;
+        reserved_slots = [];
+        bookings = [];
+        updateReservedTimeSlots();
+
+        return;
+      }
+
+      const ul = document.createElement("ul");
+
+      bookings = data;
+
+      data.forEach((booking) => {
+        reserved_slots.push(booking.booking_date);
+
+        const li = document.createElement("li");
+        li.classList.add("booking");
+
+        li.innerHTML = `
+            <span>Booking ID: #${booking.id}</span>
+            <span>Booking Date and Time: ${formatDate(
+              booking.booking_date
+            )}</span>
+            <span>Number of Guests: ${booking.no_of_guests}</span>
+            <div class="booking-actions">
+            <button onclick="deleteBooking(${booking.id})">Delete</button>
+            <button onclick="handleEditBookingClick(${
+              booking.id
+            })">Edit</button>
+            <p id="booking-item-action-error-${
+              booking.id
+            }" class="error-message"></p>`;
+
+        ul.appendChild(li);
+      });
+
+      // override the innerHTML of the savedBookingsContainer with the uk element
+      savedBookingsContainer.innerHTML = "";
+      savedBookingsContainer.appendChild(ul);
+
+      updateReservedTimeSlots();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  /* function to create a new booking */
+  async function createBooking(e, isEditBooking = false) {
+    e.preventDefault();
+
+    let booking_id;
+    let user_id;
+
+    const formData = new FormData(e.target);
+
+    if (isEditBooking) {
+      booking_id = formData.get("edit_booking_id");
+      user_id = formData.get("edit_user_id");
+    }
+
+    const reservation_date = isEditBooking
+      ? formData.get("edit_reservation_date")
+      : formData.get("reservation_date");
+
+    let reservation_slot;
+    if (isEditBooking) {
+      reservation_slot =
+        formData.get("edit_reservation_slot") ||
+        formData.get("edit_original_reserverd_slot");
+    } else {
+      reservation_slot = formData.get("reservation_slot");
+    }
+
+    const booking_date = `${reservation_date} ${reservation_slot}:00`;
+
+    const no_of_guests = isEditBooking
+      ? formData.get("edit_no_of_guests")
+      : formData.get("no_of_guests");
+
+    if (!reservation_date || !reservation_slot || !no_of_guests) {
+      alert("Please fill in the booking date, time, and number of guests!");
+      return;
+    }
+
+    const data = {
+      booking_date,
+      no_of_guests: parseInt(no_of_guests),
+      ...(user_id && { user: parseInt(user_id) }), // only add user_id if it exists (i.e. for non-BE overridden PUT requests)
+    };
+
+    const url = isEditBooking
+      ? `/restaurant/booking/table/${booking_id}/`
+      : "/restaurant/booking/table/";
+
+    const method = isEditBooking ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+          Authorization: `Token ${user_details.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`${response.status}:${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      console.log(result);
+
+      updateBookingContainer.style.display = "none";
+      showSuccessMessage(
+        `Booking was ${isEditBooking ? "updated" : "created"} successfully!`
+      );
+      getBookings();
+    } catch (error) {
+      const errorSelector = isEditBooking
+        ? `update-booking-error`
+        : `table-booking-error`;
+
+      document.getElementById(
+        errorSelector
+      ).innerHTML = `Error: ${error.message}`;
+    }
+  }
+
+  /*
+    function to handle edit booking button click.
+    will dynamically pre-populate edit booking form
+  */
+  function handleEditBookingClick(id) {
+    updateBookingContainer.style.display = "block";
+
     document.getElementById(
-      "auth-status"
-    ).innerHTML = `<a href="{% url 'login' %}">Login</a> to view and manage your table
-      bookings!`;
+      "update-booking-title"
+    ).innerHTML = `Update Booking (ID: #${id})`;
+
+    const booking = bookings.find((booking) => booking.id === id);
+
+    // set values to hidden input fields
+    document.getElementById("edit_booking_id").value = booking.id;
+    document.getElementById("edit_user_id").value = booking.user;
+    document.getElementById("edit_original_reserverd_slot").value =
+      booking.booking_date.split("T")[1].split(":")[0];
+
+    const reservation_date = document.getElementById("edit_reservation_date");
+    reservation_date.value = booking.booking_date.split("T")[0];
+
+    updateReservedTimeSlots(true);
+    const reservation_slot = document.getElementById("edit_reservation_slot");
+    reservation_slot.value = booking.booking_date.split("T")[1].split(":")[0];
+
+    const no_of_guests = document.getElementById("edit_no-of-guests");
+    no_of_guests.value = booking.no_of_guests;
+  }
+
+  /* function to handle cancel booking update button click */
+  function handleCancelBookingUpdateClick() {
+    updateBookingContainer.style.display = "none";
+  }
+
+  /* function to delete a booking */
+  function deleteBooking(id) {
+    updateBookingContainer.style.display = "none";
+
+    const url = `/restaurant/booking/table/${id}/`;
+
+    fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+        Authorization: `Token ${user_details.token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`${response.status}:${response.statusText}`);
+        }
+
+        getBookings();
+
+        showSuccessMessage(`Booking ID #${id} was deleted successfully!`);
+      })
+      .catch((error) => {
+        document.getElementById(
+          `booking-item-action-error-${id}`
+        ).innerHTML = `Error: ${error.message}`;
+      });
+  }
+
+  /* function to set the default booking date to today */
+  function setDefaultBookingDate() {
+    const date = new Date();
+
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const dateFormatted = date.getDate().toString().padStart(2, "0");
+    const today = `${year}-${month}-${dateFormatted}`;
+
+    const reservation_date = document.getElementById("reservation_date");
+    reservation_date.value = today;
+  }
+
+  /* function to update the reserved time slots based on the selected date */
+  function updateReservedTimeSlots(isEditBooking = false) {
+    let slot_options = '<option value="0" disabled>Select time</option>';
+    let filtered_slots_by_time = [];
+
+    const selectorDate = isEditBooking
+      ? "edit_reservation_date"
+      : "reservation_date";
+    const selected_date = document.getElementById(selectorDate).value;
+
+    if (bookings?.length) {
+      const filtered_slots_by_date = bookings.filter(
+        (booking) => booking.booking_date.split("T")[0] === selected_date
+      );
+
+      filtered_slots_by_time = filtered_slots_by_date.map((booking) => {
+        const time = booking.booking_date.split("T")[1].split(":")[0];
+        return parseInt(time);
+      });
+    }
+
+    for (let i = 11; i < 20; i++) {
+      const label = formatTime(i);
+
+      if (filtered_slots_by_time.includes(i)) {
+        slot_options += `<option value=${i} disabled>${label}</option>`;
+      } else {
+        slot_options += `<option value=${i}>${label}</option>`;
+      }
+    }
+
+    const selectorSlot = isEditBooking
+      ? "edit_reservation_slot"
+      : "reservation_slot";
+
+    document.getElementById(selectorSlot).innerHTML = slot_options;
+  }
+
+  /* function to add event listeners to the add and edit booking forms */
+  function addEventListeners() {
+    const reservation_date = document.getElementById("reservation_date");
+    reservation_date.addEventListener("change", function (e) {
+      console.log(reservation_date.value);
+      updateReservedTimeSlots();
+    });
+
+    const edit_reservation_date = document.getElementById(
+      "edit_reservation_date"
+    );
+    edit_reservation_date.addEventListener("change", function (e) {
+      console.log(edit_reservation_date.value);
+      updateReservedTimeSlots();
+    });
+
+    const bookingForm = document.getElementById("table-booking-form");
+    bookingForm.addEventListener("submit", createBooking);
+
+    const updateBookingForm = document.getElementById("update-booking-form");
+    updateBookingForm.addEventListener("submit", (e) => {
+      createBooking(e, true);
+    });
+  }
+
+  /* function to format time to 12-hour format */
+  function formatTime(time) {
+    const ampm = time < 12 ? "AM" : "PM";
+    const t = time < 12 ? time : time > 12 ? time - 12 : time;
+    const label = `${t} ${ampm}`;
+    return label;
+  }
+
+  /* function to format date to YYYY-MM-DD HH:MM AM/PM format */
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getUTCFullYear();
+    const month = date.toLocaleString("default", { month: "short" });
+    const day = date.getUTCDate();
+    const hour = date.getUTCHours() % 12 || 12;
+    const minute = date.getMinutes();
+    const ampm = date.getHours() >= 12 ? "PM" : "AM";
+    return `${year}-${month}-${day} ${hour}:${minute
+      .toString()
+      .padStart(2, "0")}${ampm}`;
+  }
+
+  /* function to temporarily display success message (e.g. simulate a super basic toast, mechanistically) */
+  function showSuccessMessage(message) {
+    const successMessage = document.getElementById(
+      "action-confirmation-message"
+    );
+    successMessage.innerHTML = message;
+    successMessage.style.display = "block";
+    setTimeout(() => {
+      successMessage.style.display = "none";
+    }, 3000);
   }
 </script>
 {% endblock %}

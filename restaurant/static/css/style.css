@@ -251,6 +251,10 @@ footer p {
   color: red;
 }
 
+.success-message {
+  color: green;
+}
+
 @media (max-width: 800px) {
   section {
     flex-direction: column;
