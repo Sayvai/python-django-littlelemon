@@ -18,4 +18,6 @@ class Booking(models.Model):
     booking_date = models.DateTimeField()
 
     def __str__(self) -> str:
-        return f"{self.name} : {self.booking_date} - {self.no_of_guests} guest(s)"
+        return (
+            f"{self.user.username} : {self.booking_date} - {self.no_of_guests} guest(s)"
+        )

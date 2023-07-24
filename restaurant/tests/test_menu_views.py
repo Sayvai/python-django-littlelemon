@@ -13,7 +13,7 @@ class MenuViewTest(TestCase):
     # test: simulate URL dispatch call which maps (routes) to the Menu view, to then retrieve all the Menu objects (already mocked in setUp function above).
     # The retrieved Menu model objects should already be serialized by the view, where we just run assertions to check if the serialized data equals the response.
     def test_getall(self):
-        response = self.client.get("/restaurant/menu/")
+        response = self.client.get("/restaurant/menu")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 3)
 

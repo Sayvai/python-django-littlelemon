@@ -1,6 +1,6 @@
 # Full Stack LittleLemon Restaurant Reservation System
 
-This is a simple full-stack restaurant reservation system, which is developed using Python, and Django, as part of a Meta Back-End Developer Developer Professional Certificate program.
+This is a simple full-stack restaurant table reservation system, which is developed using Python, and Django, as part of a Meta Back-End Developer Developer Professional Certificate program to acquire the necessary skills to become a full-stack developer, focusing on in particular Python, as well as the Django Web / REST Framework, to build inevitably build out a full-stack application.
 
 ## Installation and Setup
 
@@ -27,7 +27,7 @@ git clone <INSERT HTTPS / SSH URL>
 2. cd into the project directory. For example:
 
 ```
-cd littlelemon
+cd python-django-littlelemon
 ```
 
 3. Create a virtual environment for the project via the terminal
@@ -44,7 +44,7 @@ pipenv install
 
 ℹ️ - This step only needs to be done once, when you first install the app.
 
-5. Configure the local database environment variables in settings.py file with the appropriate credentials. The default values are as follows:
+5. Configure the local database environment variables within the project-level `littlelemon/settings.py` file with the appropriate credentials. The default values are as follows:
 
 ```python
 # settings.py
@@ -97,21 +97,85 @@ python3 manage.py runserver
 python3 manage.py createsuperuser
 ```
 
+**Note:** if the prompt warns you the password is too common, then just press `y` to confirm you like to proceed with the password, and hit enter to continue.
+
+9. From within the [admin](http://127.0.0.1:8000/admin/) dashboard interface, create a new **Group** labelled as `Managers`, and assign the `admin` user to that group from within the [admin](http://127.0.0.1:8000/admin/) interface.
+
+10. Create a few menu items from within the admin interface dashboard at [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) by selecting the `+ Add` option to the right of the label `Menus` from within the left panel of the dashboard. Or, you could alternatively use your favourite REST client (e.g. Insomnia, Postman, etc), as long as you have generated and supply a valid token for the admin account in the request header (e.g. ` Authorization: "TOKEN 1234abge..."`), in which the token can also be obtained from the admin dashboard, or REST client ( `/auth/token/login/`).
+
+You may enter the following example menu items for inspiration:
+
+```
+name: "Edamame Beans"
+price: "2.50"
+inventory: "10"
+
+name: "Chicken Katsu Curry"
+price: "8.50"
+inventory: "40"
+
+name: "Prawn Katsu Curry"
+price: "10.50"
+inventory: "70"
+
+name: "Salmon Teriyaki"
+price: "11.50"
+inventory: "50"
+
+name: "Mochi Ice Cream"
+price: "4.50"
+inventory: "20"
+```
+
 ## Testing the app
 
-The majority of the testing the listing of menu items derived from the database, and especially performing CRUD operations on table bookings, which can be done on [http://127.0.0.1:8000/restaurant/](http://127.0.0.1:8000/restaurant/).
+The majority of the testing the listing of menu items derived from the database, and especially performing CRUD operations on table bookings, which can be performed on [http://127.0.0.1:8000/restaurant/](http://127.0.0.1:8000/restaurant/).
 
-1. Create a new group labelled as `Managers`, and assign the `admin` user to that group from within the [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) interface.
+You should be able to perform the following actions from the LittleLemon front-end HTML webpages:
 
-2. Register a new customer user account from [http://127.0.0.1:8000/restaurant/register](http://127.0.0.1:8000/restaurant/register), and then login at [http://127.0.0.1:8000/restaurant/login](http://127.0.0.1:8000/restaurant/login).
+- [Register](http://127.0.0.1:8000/restaurant/register) a new customer user account.
 
-## Admin Credentials
+- [Login](http://127.0.0.1:8000/restaurant/login) with the new customer
 
-To login to the localhost [admin](http://127.0.0.1:8000/admin) web UI interface of the app as the super user admin, use the following credentials:
+- View the [menu items](http://127.0.0.1:8000/restaurant/menu-list) from
 
+- Manage [table bookings](http://127.0.0.1:8000/restaurant/booking)
+
+## API Endpoints
+
+You could also directly test the following endpoints via a REST client (e.g. Insomnia, Postman, etc):
+
+- `/auth/token/login/` - [POST] This endpoint is used to obtain an authentication token by providing a valid username and password.
+
+- `/auth/token/logout/`: [POST] This endpoint is used to revoke an authentication token.
+
+- `restaurant/menu` - [GET] Retrieve all menu items. Anyone can access this endpoint.
+
+- `restaurant/menu` - [POST] Create new menu items. Only authenticated managers users (e.g. admin) can access this endpoint, provided a valid token in the header, and data in the request body.
+
+- `restaurant/menu/<int:pk>` - [GET, PUT, PATCH, DELETE] List and manipulate a menu item. Only authenticated managers users (e.g. admin) can access this endpoint, provided a valid token in the header, and data in the request body.
+
+- `restaurant/tables` - [GET] Retrieve all table bookings for the currently authenticated valid user (token).
+
+- `restaurant/tables` - [POST] Create new table booking for the currently authenticated valid user. Only authenticated users (e.g. admin, registered user) can access this endpoint, provided a valid token in the header, and data in the request body. No need to pass in `user` id to the payload, as the BE view logic automatically assigns the currently authenticated user to the table booking for the POST requests.
+
+- `restaurant/tables/<int:pk>` - [GET, PUT, DELETE] Get and manipulate table booking for the currently authenticated valid user. Only authenticated users (e.g. admin, registered user) can access this endpoint, provided a valid token in the header.
+
+## Unit Tests
+
+To run the unit tests, run the following command in the terminal:
+
+```shell
+python3 manage.py test
 ```
-username: admin
-password: admin
-```
 
-The registered email address for the super user admin is `admin@littlelemon.com`.
+## Technologies Used
+
+- Python
+- Django
+- Django REST Framework (DRF)
+- Djoser (for authentication)
+- MySQL
+- HTML
+- CSS
+- JavaScript

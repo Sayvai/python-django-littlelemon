@@ -11,6 +11,7 @@
   <button type="submit">Register</button>
 </form>
 <p id="error" class="error-message"></p>
+<p id="success" class="success-message"></p>
 <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
 <script>
   const form = document.getElementById("register-form");
@@ -49,15 +50,20 @@
         return response.json();
       })
       .then((result) => {
-        debugger;
         if (requestResponse.ok) {
-          window.location.href = "{% url 'login' %}";
+          document.getElementById("success").innerHTML =
+            "Account created successfully! You will be redirected to the login page in 5 seconds.";
+
+          setTimeout(() => {
+            window.location.href = "{% url 'login' %}";
+          }, 5000);
+
+          return;
         }
         console.log(result);
         throw new Error(JSON.stringify(result));
       })
       .catch((error) => {
-        debugger;
         document.getElementById(
           "error"
         ).innerHTML = `There was a problem registering an account. Please try again.<br/><br/>${error}`;
