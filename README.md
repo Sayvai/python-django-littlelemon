@@ -2,6 +2,12 @@
 
 This is a simple full-stack restaurant table reservation system, which is developed using Python, and Django, as part of a Meta Back-End Developer Developer Professional Certificate program to acquire the necessary skills to become a full-stack developer, focusing on in particular Python, as well as the Django Web / REST Framework, to build inevitably build out a full-stack application.
 
+## Demo
+
+You may view a [video](https://drive.google.com/file/d/1eLz3OGxykJXx00xmWnfGX-DeGv_Tt3Uj/view?usp=drive_link) (with audio commentary) demonstrating the functionality of the app:
+
+[<img src="restaurant/static/img/littlelemon-home.png" width="75%">](https://drive.google.com/file/d/1eLz3OGxykJXx00xmWnfGX-DeGv_Tt3Uj/view?usp=drive_link)
+
 ## Installation and Setup
 
 ### Pre-requisites
@@ -76,7 +82,7 @@ FLUSH PRIVILEGES;
 
 ℹ️ - This step only needs to be done once, when you first install the app.
 
-6. Run the individual migration commands in your terminal to create the necessary database tables in the MySQL database (littlelemon):
+6. Run the individual migration commands in your terminal to create the necessary database tables in the MySQL database (**_littlelemon_sayvai_**):
 
 ```shell
 python3 manage.py makemigrations
