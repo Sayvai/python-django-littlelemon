@@ -13,7 +13,7 @@ You may view a [video](https://drive.google.com/file/d/1eLz3OGxykJXx00xmWnfGX-De
 ### Pre-requisites
 
 - Install Python - [https://www.python.org/downloads/](https://www.python.org/downloads/)
-- Install pipenv - `pip3 install pipenv`
+- Install pipenv - `pip3 install pipenv` - allows you to create a virtual environment for the project, and isolate the project dependencies from the global scope, or other Python projects.
 - Install MySQL - [https://www.mysql.com/downloads/](https://www.mysql.com/downloads/). Or install MySQL using [Homebrew](https://brew.sh/)
 - Start / Run the MySQL server
 - Create a MySQL database named (for example, `littlelemon_sayvai`) with the following command: `CREATE DATABASE littlelemon_sayvai;`
@@ -24,27 +24,35 @@ To install the app, clone the repository, and run the following command in the r
 
 1. Clone the repository
 
+If using SSH authentication:
+
+```shell
+git clone git@github.com:Sayvai/python-django-littlelemon.git
 ```
-git clone <INSERT HTTPS / SSH URL>
+
+or, if using HTTPS authentication:
+
+```shell
+git clone https://github.com/Sayvai/python-django-littlelemon.git
 ```
 
 ℹ️ - This step only needs to be done once, when you first install the app.
 
 2. cd into the project directory. For example:
 
-```
+```shell
 cd python-django-littlelemon
 ```
 
 3. Create a virtual environment for the project via the terminal
 
-```
+```shell
 pipenv shell
 ```
 
 4. Install the dependencies via the terminal
 
-```
+```shell
 pipenv install
 ```
 
@@ -105,7 +113,11 @@ python3 manage.py createsuperuser
 
 **Note:** if the prompt warns you the password is too common, then just press `y` to confirm you like to proceed with the password, and hit enter to continue.
 
+ℹ️ - This step only needs to be done once, when you first install the app.
+
 9. From within the [admin](http://127.0.0.1:8000/admin/) dashboard interface, create a new **Group** labelled as `Managers`, and assign the `admin` user to that group from within the [admin](http://127.0.0.1:8000/admin/) interface.
+
+ℹ️ - This step only needs to be done once, when you first install the app.
 
 10. Create a few menu items from within the admin interface dashboard at [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) by selecting the `+ Add` option to the right of the label `Menus` from within the left panel of the dashboard. Or, you could alternatively use your favourite REST client (e.g. Insomnia, Postman, etc), as long as you have generated and supply a valid token for the admin account in the request header (e.g. ` Authorization: "TOKEN 1234abge..."`), in which the token can also be obtained from the admin dashboard, or REST client ( `/auth/token/login/`).
 
@@ -132,6 +144,8 @@ name: "Mochi Ice Cream"
 price: "4.50"
 inventory: "20"
 ```
+
+ℹ️ - This step only needs to be done once, when you first install the app.
 
 ## Testing the app
 
@@ -168,6 +182,8 @@ You could also directly test the following endpoints via a REST client (e.g. Ins
 - `restaurant/tables/<int:pk>` - [GET, PUT, DELETE] Get and manipulate table booking for the currently authenticated valid user. Only authenticated users (e.g. admin, registered user) can access this endpoint, provided a valid token in the header.
 
 ## Unit Tests
+
+The unit test cases are located in the `restaurant/tests/` app-level package directory.
 
 To run the unit tests, run the following command in the terminal:
 
