@@ -199,6 +199,10 @@ python3 manage.py test
 pipenv shell
 ```
 
+- if using VS Code, you could also automatically set the virtual environment to be activated when you open the project in VS Code. To do this, first find the active path of the activated pipenv shell, by typing on the terminal / shell `pipenv --venv`, and copy the output interpreter path for the pipenv environment for this project. Next, open the VS Code command palette, and type `Python: Select Interpreter`, and select the option `+ Enter interpreter path...`, and **paste** the project pipenv interpreter path you copied earlier, and then press the **enter** key. This will ensure that the virtual environment is automatically activated when you open the project in VS Code.
+
+- if using the VS Code IDE, then you may also wish to debug the application in realtime using VS Code **Run and Debug** feature, whereby the configurations are located in `.vscode/launch.json`. Using the feature will run the Django development server for you, and will allow you to set breakpoints to pause code execution during runtime, where you may further inspect and debug variable values and output. To do so, simply click on the 'Run and Debug' icon on the side panel, and select the `Django: LittleLemon` option from the dropdown menu, and click on the **Run / Play** button.
+
 ## Technologies Used
 
 - Python
